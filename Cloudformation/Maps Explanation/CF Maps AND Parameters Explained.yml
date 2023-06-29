@@ -1,0 +1,71 @@
+
+
+AWSTemplateFormatVersion: 2010-09-09
+Description: An explanation of Parameters and Maps
+
+##############################
+#          PARAMETERS        #
+##############################
+
+Parameters:
+  OperatingSystem:
+    Description: Get the Operating System type.
+    Type: String
+    AllowedValues:
+      - ROCKY8
+      - RHEL8
+
+##############################
+#       End of PARAMETERS    #
+##############################
+
+
+##############################
+#          MAPS              #
+##############################
+
+Mappings: #!FindInMap looks here
+  RegionMap: #mapname
+    us-east-1: #Top Level Key
+      RHEL8: ami-06640050dc3f556bb #secondary level key
+      ROCKY8: ami-004b161a1cceb1ceb #secondary level key
+    us-east-2:
+      RHEL8: ami-092b43193629811af #secondary level key
+      ROCKY8: ami-0ce24f7d9f52a2d88 #secondary level key
+
+##############################
+#         End Of MAPS        #
+##############################
+
+Resources:
+  EC2Instance:
+      Type: AWS::EC2::Instance
+      Properties:
+        AvailabilityZone: !Ref AvailabilityZoneParam
+        ImageId: !FindInMap [RegionMap, !Ref "AWS::Region", !Ref OperatingSystem]
+
+
+#Cloudformation parameters and maps are easy to setup once you have done it once. Let's explore this example of creating an EC2 instance depending on the operating system parameter.
+#
+#When building the Cloudformation stack, we need to pass in the operating system value. This could be an OS such as: Amazon Linux, Centos, Redhat, Windows, or any other supported OS; the parameter needs to have a corresponding secondary level key with a valid AMI for our example. The OS parameter simply holds a variable value that is used to map to an AMI. For our example, we will only allow the OS parameter to be "RHEL8" or "ROCKY8"; otherwise, the build will fail.
+#
+#Looking at the following line to create an EC2 Instance:
+#ImageId: !FindInMap [RegionMap, !Ref "AWS::Region", !Ref OperatingSystem]
+#
+#!FindInMap means we will refer to "Mappings:"
+#
+#RegionMap is the name of the "Map" we are accessing. In our case, this is regions and we have options of "us-east-1" and "us-east-2".
+#
+#!Ref "AWS::Region" will use our current region that we are building in.
+#
+#!Ref OperatingSystem will use the OS parameter we passed to obtain our AMI.
+#
+#A real world sample:
+#We need to create a Red Hat Enterprise Linux 8 server in the us-east-1 region. To solve this, we will pass in "RHEL8" as our OS parameter.
+#
+#The map we use is "Region Map" and we lookup the top level key of "us-east-1" and since the OS passed in from the parameter is RHEL8 we get an AMI of "ami-06640050dc3f556bb".
+#
+#Final Result:
+#ImageId: ami-06640050dc3f556bb
+
+#iac #cloud #aws #automation #cloudformation #infrastructureascode

@@ -1,0 +1,38 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Part 2 - Create an EC2 Instance with http/https/ssh enabled
+
+Resources:
+  WebServerInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: ami-05bfbece1ed5beb54 # ImageID is for Amazon Linux 2 in us-east-2 region
+      InstanceType: t2.micro
+      KeyName: MattCloudFormation
+      SecurityGroupIds:
+        - !Ref WebAppSecurityGroup
+      Tags:
+      - Key: Name
+        Value: WebServerName
+
+
+  WebAppSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: !Join ["-", [webapp-security-group, dev]]
+      GroupDescription: "Allow HTTP/HTTPS and SSH inbound and outbound traffic" 
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 22 
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+      Tags:
+      - Key: Name
+        Value: WebServerSG

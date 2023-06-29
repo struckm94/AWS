@@ -1,0 +1,10 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Part 1 - Create an EC2 Instance!
+
+Resources:
+  WebServerInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: ami-05bfbece1ed5beb54 # ImageID is for Amazon Linux 2 in us-east-2 region
+      InstanceType: t2.micro
+      
