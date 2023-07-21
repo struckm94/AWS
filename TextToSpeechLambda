@@ -1,0 +1,36 @@
+#Purpose: To handle a text file that is uploaded to AWS S3 and trigger an AWS Lambda function (Trigger is S3 PutObject) to perform a TTS (Text-To-Speech) operation. The TTS is done by AWS Polly.
+#Guide: https://medium.com/petabytz/serverless-lambda-function-using-aws-polly-and-amazon-s3-services-dce9a43533b1
+
+import json
+import boto3
+
+def lambda_handler(event, context):
+    s3 = boto3.resource('s3')
+
+    # get bucket name and file key from the event parameter
+    bucket_name = event['Records'][0]['s3']['bucket']['name']
+    key = event['Records'][0]['s3']['object']['key']
+
+    # download the file that triggered this function
+    obj = s3.Object(bucket_name, key)
+    file_content = obj.get()['Body'].read().decode('utf-8') 
+
+    # create a polly client
+    polly = boto3.client("polly")
+
+    # specify the name for the output file
+    output_filename = "speech.mp3"
+
+    # call polly to synthesize speech from the file content
+    response = polly.synthesize_speech(
+        Text=file_content,
+        OutputFormat="mp3",
+        VoiceId="Matthew")
+    stream = response["AudioStream"]
+
+    # upload the synthesized speech to the same S3 bucket
+    s3.Bucket(bucket_name).put_object(Key=output_filename, Body=stream.read())
+
+    return {
+        'statusCode': 200,
+    }
