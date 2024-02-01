@@ -1,0 +1,78 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Create a vgw, cgw, and vpn. This creates all the needed resources to setup the AWS-S2S-VPN.
+
+Parameters:
+  CustID:
+    Type: String
+    Description: Customer ID to label resources.
+  CustCGWLocationAndNumber:
+    Type: String
+    Description: Location of customer CGW and Identifier (Example... calnum-main1-cgw)
+  VpcID:
+    Type: AWS::EC2::VPC::Id
+    Description: The VPC ID where the VPN Gateway will be attached.
+  PublicIP:
+    Type: String
+    Description: The public IP address for the Customer Gateway.
+  SubCustomer: # Added optional SubCustomer parameter
+    Type: String
+    Description: Sub Customer field
+    Default: ""
+
+Conditions:
+  HasSubCustomer: !Not [!Equals [!Ref SubCustomer, ""]] # Check if SubCustomer is provided
+
+Resources:
+  AttachVirtualPrivateGateway:
+    Type: "AWS::EC2::VPCGatewayAttachment"
+    Properties:
+      VpcId: !Ref VpcID
+      VpnGatewayId: !Ref MyVpnGateway
+
+  MyVpnGateway:
+    Type: "AWS::EC2::VPNGateway"
+    Properties: 
+      Type: "ipsec.1"
+      Tags:
+        - Key: "Name"
+          Value: !If [HasSubCustomer, !Sub "${SubCustomer}-${CustID}-${CustCGWLocationAndNumber}-vgw", !Sub "${CustID}-${CustCGWLocationAndNumber}-vgw"]
+
+  MyCustomerGateway:
+    Type: "AWS::EC2::CustomerGateway"
+    Properties: 
+      BgpAsn: 65000
+      IpAddress: !Ref PublicIP
+      Type: "ipsec.1"
+      Tags:
+        - Key: "Name"
+          Value: !If [HasSubCustomer, !Sub "${SubCustomer}-${CustID}-${CustCGWLocationAndNumber}-cgw", !Sub "${CustID}-${CustCGWLocationAndNumber}-cgw"]
+
+  MyVpnConnection:
+    Type: "AWS::EC2::VPNConnection"
+    Properties: 
+      CustomerGatewayId: !Ref MyCustomerGateway
+      Type: "ipsec.1"
+      VpnGatewayId: !Ref MyVpnGateway
+      StaticRoutesOnly: true
+      Tags:
+        - Key: "Name"
+          Value: !If [HasSubCustomer, !Sub "s2s-${SubCustomer}-${CustID}-${CustCGWLocationAndNumber}-vpn", !Sub "s2s-${CustID}-${CustCGWLocationAndNumber}-vpn"]
+
+Outputs:
+  VirtualPrivateGatewayId:
+    Description: "The ID of the Virtual Private Gateway"
+    Value: !Ref MyVpnGateway
+    Export:
+      Name: !Sub "${AWS::StackName}-VirtualPrivateGatewayId"
+
+  CustomerGatewayId:
+    Description: "The ID of the Customer Gateway"
+    Value: !Ref MyCustomerGateway
+    Export:
+      Name: !Sub "${AWS::StackName}-CustomerGatewayId"
+
+  VpnConnectionId:
+    Description: "The ID of the VPN Connection"
+    Value: !Ref MyVpnConnection
+    Export:
+      Name: !Sub "${AWS::StackName}-VpnConnectionId"
