@@ -18,9 +18,19 @@ Parameters:
     Type: String
     Description: Sub Customer field
     Default: ""
+  RoutingType:
+    Type: String
+    Default: "static"
+    AllowedValues:
+      - static
+      - bgp
+    Description: Choose the routing type for the VPN tunnel (static or bgp)
+  
 
 Conditions:
   HasSubCustomer: !Not [!Equals [!Ref SubCustomer, ""]] # Check if SubCustomer is provided
+  IsStaticRouting: !Equals [!Ref RoutingType, "static"]
+  IsBgpRouting: !Equals [!Ref RoutingType, "bgp"]
 
 Resources:
   AttachVirtualPrivateGateway:
@@ -53,7 +63,8 @@ Resources:
       CustomerGatewayId: !Ref MyCustomerGateway
       Type: "ipsec.1"
       VpnGatewayId: !Ref MyVpnGateway
-      StaticRoutesOnly: true
+      StaticRoutesOnly: !If [IsStaticRouting, "true", "false"]
+      BgpAsn: !If [IsBgpRouting, "65000", !Ref "AWS::NoValue"]
       Tags:
         - Key: "Name"
           Value: !If [HasSubCustomer, !Sub "s2s-${SubCustomer}-${CustID}-${CustCGWLocationAndNumber}-vpn", !Sub "s2s-${CustID}-${CustCGWLocationAndNumber}-vpn"]
