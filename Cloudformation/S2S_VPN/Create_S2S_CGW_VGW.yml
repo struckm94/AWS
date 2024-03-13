@@ -64,7 +64,6 @@ Resources:
       Type: "ipsec.1"
       VpnGatewayId: !Ref MyVpnGateway
       StaticRoutesOnly: !If [IsStaticRouting, "true", "false"]
-      BgpAsn: !If [IsBgpRouting, "65000", !Ref "AWS::NoValue"]
       Tags:
         - Key: "Name"
           Value: !If [HasSubCustomer, !Sub "s2s-${SubCustomer}-${CustID}-${CustCGWLocationAndNumber}-vpn", !Sub "s2s-${CustID}-${CustCGWLocationAndNumber}-vpn"]
