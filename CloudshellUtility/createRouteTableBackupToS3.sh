@@ -7,7 +7,7 @@ custid=""
 current_date=$(date +%Y-%m)
 
 # Concatenate the AWS_REGION to the bucket name
-bucket_name="${custid,,}-matt-route-table-${AWS_REGION,,}"
+bucket_name="${custid,,}-route-table-${AWS_REGION,,}"
 
 # Check if the S3 bucket exists and create it if it doesn't
 if ! aws s3 ls "s3://${bucket_name}" > /dev/null 2>&1; then
