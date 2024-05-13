@@ -33,8 +33,8 @@ BackupToS3() {
     for rt_id in ${route_tables}; do
         object_key="${rt_id}/${current_date}/route-table-output.json"
         route_table_details=$(aws ec2 describe-route-tables --route-table-ids "${rt_id}" --output json)      
-        temp_file="/tmp/${rt_id}.json"
-        echo "${route_table_details}" > "${temp_file}"
+        #temp_file="/tmp/${rt_id}.json"
+        #echo "${route_table_details}" > "${temp_file}"
         aws s3api put-object --bucket "${bucket_name}" --key "${object_key}" --body "${temp_file}"
         # rm "${temp_file}" # Uncomment to delete temp file after upload
         echo "Object ${object_key} uploaded to bucket ${bucket_name}."
